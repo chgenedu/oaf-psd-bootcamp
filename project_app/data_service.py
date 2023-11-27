@@ -74,4 +74,4 @@ class DataServiceFactory:
         if self.mode == "API":
             return DataServiceFromAPI(self.data_source)
         else:
-            return DataServiceFromFile(self.data_source) 
+            return DataServiceFromFile(self.data_source)

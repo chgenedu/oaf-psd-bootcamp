@@ -17,4 +17,4 @@ def get_config(config_file):
     data = json.load(f)
     url = data["configuration"]["url"]
     payload = data["configuration"]["payload"]
-    return url, payload 
+    return url, payload
