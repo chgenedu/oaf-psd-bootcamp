@@ -1,64 +1,103 @@
+from abc import ABC, abstractmethod
+from database import WeatherDatabase
+from location import Location
+
 import requests
 import read_config as rc
-from abc import abstractmethod
-
+import numpy as np
+import datetime
 
 # interface for DataService
-class IDataService:
+class IDataService(ABC):
     @abstractmethod
-    def __init__(self, data_source):
+    def __init__(self, data_source: str, database: WeatherDatabase):
         pass
 
     @abstractmethod
-    def get_data(self):
+    def download_data(self, location: Location):
         pass
     
     @abstractmethod
-    def print_data(self):
+    def get_data_from_db(self, location: Location):
+        pass
+
+    @abstractmethod
+    def print_data(self, location: Location):
         pass
     
     @abstractmethod
     def print_status(self):
         pass
 
-
 class DataServiceFromAPI(IDataService):
-    def __init__(self, data_source):
+    def __init__(self, data_source: str, database: WeatherDatabase):
         self._url, self._payload = rc.get_config(data_source)
+        self._database = database
 
-    def get_data(self):
+    def download_data(self, location: Location):
+        self._location = location
+        self._payload["longitude"] = location.get_longitude()
+        self._payload["latitude"] = location.get_latitude()
         try:
             r = requests.get(self._url, params=self._payload)
         except Exception:
             print("Error: Cannot get data with API.")
-            time = []
-            temp = []
+            self.time_list = []
+            self.temp_list = []
         else:
             data = r.json().get("hourly", {})
-            time = data["time"]
-            temp = data[self._payload["hourly"]]
+            self.time_list = data["time"]
+            self.temp_list = data[self._payload["hourly"]]
+            for time, temp in zip(self.time_list, self.temp_list):
+                self._database.insert_data(location, time, temp)
+        # in either case, save the status_code
         self.status_code = r.status_code
-        self.time_list = time
-        self.temp_list = temp
-    
-    def print_data(self):
+
+    def get_data_from_db(self, location: Location):
+        return self._database.get_time_temp(location)
+
+    def print_data(self, location: Location):
+        data = self._database.get_time_temp(location)
+        for time, temperature in data:
+            print(time, temperature)
+
+    def print_status(self):
+        print("API status code: ", self.status_code)        
+
+# Mocked data service
+class DataServiceMocked(IDataService):
+    def __init__(self, data_source: str, database: WeatherDatabase):
+        super().__init__(data_source, database)
+        self.status_code = "init"
+        self._database = database
+
+    def download_data(self, location: Location):
+        """
+        prints n data points for mocked data service 
+        where temperature is randomly generated as normal distribution 
+        with mean mu and standard deviation sd.
+        """
+        n: int = 20
+        mu: float = 65
+        sd: float = 5
+        now = datetime.datetime.now()
+        time_delta = datetime.timedelta(hours=n)
+        t = now - time_delta
+        self.time_list = [(t+datetime.timedelta(hours=i)).isoformat(timespec="minutes") for i in range(n) ]
+        self.temp_list = [round(np.random.randn()*sd, 1) + mu for _ in range(n)]        
+        for time, temp in zip(self.time_list, self.temp_list):
+            self._database.insert_data(location, time, temp)
+        self.status_code = "OK"
+
+    def get_data_from_db(self, location: Location):
+        return self._database.get_time_temp(location)
+
+    def print_data(self, location: Location):
         for time, temp in zip(self.time_list, self.temp_list):
             print(time, "", temp)
     
     def print_status(self):
-        print("API status code: ", self.status_code)
-
-
-# placeholder for dummy data service from file.
-class DataServiceFromFile(IDataService):
-    def __init__(self, data_source):
-        super().__init__(data_source)
-    def get_data(self):
-        pass
-    def print_data(self):
-        pass
-    def print_status(self):
-        pass
+        print("Mocked service status code: ", self.status_code)
 
 
 class DataServiceFactory:
@@ -66,12 +105,15 @@ class DataServiceFactory:
     Instantiates the DataService.
     By default, getting the data service via API.
     """    
-    def __init__(self, data_source, mode="API"):
+    def __init__(self, data_source: str, database: WeatherDatabase, mode: str = "API", ):
         self.data_source = data_source
-        self.mode = mode
+        self.mode = mode.upper()
+        self._database = database
     
-    def create(self):
+    def create(self) -> IDataService:
         if self.mode == "API":
-            return DataServiceFromAPI(self.data_source)
+            return DataServiceFromAPI(self.data_source, self._database)
+        elif self.mode == "MOCK":
+            return DataServiceMocked(self.data_source, self._database)
         else:
-            return DataServiceFromFile(self.data_source)
+            raise RuntimeError("Invalid mode")
