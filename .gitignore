@@ -1,6 +1,6 @@
 # Start: Customized section
-project_weather_app/data/*
-project_weather_app/log/*
+project_weather_app/data/*.db
+project_weather_app/log/*.log
 # End: Customized section
 
 # Byte-compiled / optimized / DLL files
