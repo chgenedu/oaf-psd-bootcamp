@@ -1,11 +1,14 @@
+"""
+The DataService object directs the WeatherDatabase object to interact with the database.
+"""
 from abc import ABC, abstractmethod
 from database import WeatherDatabase
 from location import Location
-
 import requests
 import read_config as rc
 import numpy as np
 import datetime
+import pandas as pd
 
 # interface for DataService
 class IDataService(ABC):
@@ -19,10 +22,6 @@ class IDataService(ABC):
     
     @abstractmethod
     def get_data_from_db(self, location: Location):
-        pass
-
-    @abstractmethod
-    def print_data(self, location: Location):
         pass
     
     @abstractmethod
@@ -46,20 +45,17 @@ class DataServiceFromAPI(IDataService):
             self.temp_list = []
         else:
             data = r.json().get("hourly", {})
-            self.time_list = data["time"]
-            self.temp_list = data[self._payload["hourly"]]
-            for time, temp in zip(self.time_list, self.temp_list):
-                self._database.insert_data(location, time, temp)
-        # in either case, save the status_code
+            df = pd.DataFrame(data)
+            for index, row in df.iterrows():
+                self._database.insert_single_record(self._location, row["time"],
+                                             row["precipitation_probability"],
+                                             row["precipitation"],
+                                             row["wind_speed_10m"])
+        # in either case, save the status_code from "try" section
         self.status_code = r.status_code
 
     def get_data_from_db(self, location: Location):
-        return self._database.get_time_temp(location)
-
-    def print_data(self, location: Location):
-        data = self._database.get_time_temp(location)
-        for time, temperature in data:
-            print(time, temperature)
+        return self._database.get_location_record(location)
 
     def print_status(self):
         print("API status code: ", self.status_code)        
@@ -84,17 +80,20 @@ class DataServiceMocked(IDataService):
         time_delta = datetime.timedelta(hours=n)
         t = now - time_delta
         self.time_list = [(t+datetime.timedelta(hours=i)).isoformat(timespec="minutes") for i in range(n) ]
-        self.temp_list = [round(np.random.randn()*sd, 1) + mu for _ in range(n)]        
-        for time, temp in zip(self.time_list, self.temp_list):
-            self._database.insert_data(location, time, temp)
+        self.precipitation_probability_list = \
+            [round(np.random.randn()*sd, 1) + mu for _ in range(n)]
+        self.precipitation_list = [round(np.random.randn()*sd, 1) + mu for _ in range(n)]    
+        self.wind_speed_10m_list = [round(np.random.randn()*sd, 1) + mu for _ in range(n)]    
+        for time, precip_prob, precip, wind in zip(
+                                    self.time_list, 
+                                    self.precipitation_probability_list,
+                                    self.precipitation_list,
+                                    self.wind_speed_10m_list):
+            self._database.insert_single_record(location, time, precip_prob, precip, wind)
         self.status_code = "OK"
 
     def get_data_from_db(self, location: Location):
-        return self._database.get_time_temp(location)
-
-    def print_data(self, location: Location):
-        for time, temp in zip(self.time_list, self.temp_list):
-            print(time, "", temp)
+        return self._database.get_location_record(location)
     
     def print_status(self):
         print("Mocked service status code: ", self.status_code)
