@@ -1,3 +1,7 @@
+"""
+A Location object to store the location data,
+such as the longitude and the latitude of a location.
+"""
 class Location():
     def __init__(self, longitude, latitude) -> None:
         self._longitude = longitude

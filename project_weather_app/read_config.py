@@ -1,6 +1,11 @@
-import os
+"""
+read_config processes the config file.
+"""
+
+from sys import exit
 import json
 from typing import Tuple
+from util import get_file_path
 
 def get_config(config_filename: str) -> Tuple[str, dict]:
     """
@@ -8,13 +13,17 @@ def get_config(config_filename: str) -> Tuple[str, dict]:
     which is a json formatted file.
     Returns the url and payload of the API.
     """
-    # get the file handler f of config_file
-    dir = os.path.dirname(os.path.abspath(__file__))
-    filepath = os.path.join(dir, config_filename)
-    f = open(filepath)  
+    filepath = get_file_path(config_filename, calling_file = __file__)
 
-    # extract the url and payload from config_file
-    data = json.load(f)
-    url = data["configuration"]["url"]
-    payload = data["configuration"]["payload"]
+    try: 
+        with open(filepath) as f:
+            # extract the url and payload from config_file
+            print("Reading config file: ", filepath)
+            data = json.load(f)
+            url = data["configuration"]["url"]
+            payload = data["configuration"]["payload"]
+    except FileNotFoundError:
+        print("Config file does not exist: ", filepath)
+        print("Exception error: ", FileNotFoundError)
+        exit(1)
     return url, payload

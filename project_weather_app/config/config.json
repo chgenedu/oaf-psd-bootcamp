@@ -2,8 +2,7 @@
     "configuration": {
         "url": "https://api.open-meteo.com/v1/forecast",
         "payload": {
-            "hourly": "temperature_2m",
-            "temperature_unit": "fahrenheit"
+            "hourly": ["precipitation_probability", "precipitation", "wind_speed_10m"]
         }
     }
 }
