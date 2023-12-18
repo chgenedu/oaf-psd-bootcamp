@@ -24,7 +24,7 @@ The weather service API information (such as the URL and the kinds of informatio
   
 Weather data is retrieved via an the open-meteo.com API. ([Documentation for the open-meteo.com API](https://open-meteo.com/en/docs))
 
-The location (specified by longitude and latitude) is specified in main.py. Currently, the location is set to LONGITUDE = 13.41, LATITUDE = 52.52, which is the default location for the example web app on the open-meteo documentation page. For future improvement, this can be specified in the command line. 
+The location (specified by longitude and latitude) is specified in main.py. Currently, the location is set to LONGITUDE = 13.41, LATITUDE = 52.52, which is the default location for the example web app on the open-meteo documentation page. For future improvement, this can be specified in the command line or in a file.
 
 The program will lookup the weather data for the specified location in an sqlite3 database for previously retrieved data. 
 
@@ -69,7 +69,7 @@ Finally, I learned more about how to use the following tools:
 ## Future directions
 Here are some directions for further development of this project.
 * More command line arguments to specify the following:
-  * The location (longitude and latitude)
+  * The location (longitude and latitude). Alternatively, the location can be specified in a file.
   * The logging level
   * The forecasting period 
 * Improve data downloading
