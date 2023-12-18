@@ -5,42 +5,44 @@ processes the data.
 """
 from data_service import IDataService
 from location import Location
-import pandas as pd
-import matplotlib.pyplot as plt
+from visualization_handler import IVisualizationHandler
+
+import logging
+logger = logging.getLogger(__name__)
 
 class DataHandler():
     """
     Given the data_service, get the data, and process it.
     """
-    def __init__(self, data_service: IDataService):
+    def __init__(self, data_service: IDataService, 
+                 visualization_handler: IVisualizationHandler):
         self.data_service = data_service
-        self.visualization_handler = VisualizationHandler()
+        self.visualization_handler = visualization_handler
 
     def execute(self, location: Location):
         """
-        handle the data for a given location
+        Execute the data handler process for a given location
+        Get data from data service if data for the specified location 
+        is not available in the database.
         """
         self.data = self.data_service.get_data_from_db(location) 
-        if len(self.data) == 0:
-            print("Data is not in database. Downloading data...")
+
+        if self.data.empty:
+            logger.info("Data is not in database. Downloading data...")
             self.data_service.download_data(location)
             self.data_service.print_status()
             self.data = self.data_service.get_data_from_db(location)
         else: 
-            print("Using data in database.")
+            logger.info("Using data in database.")
+        
+        # Print data to console
         self.print_data()
+
+        # Use the visualizer.
         self.visualization_handler.visualize_data(self.data)
     
     def print_data(self):
-        for time, precipitation_probability, precipitation, wind_speed_10m in self.data:
-            print(time, precipitation_probability, precipitation, wind_speed_10m)
- 
-class VisualizationHandler():
-    def visualize_data(self, data):
-        print("visualize_data():")
-        df = pd.DataFrame(data)
-        df.columns = ["time", "precipitation_probability", "precipitation", "wind_speed_10m"]
-        df.set_index("time", inplace=True)
-        print(df)
-        df.plot()
-        plt.show()
+        """
+        Print the data in the data handler.
+        """
+        print(self.data) 
