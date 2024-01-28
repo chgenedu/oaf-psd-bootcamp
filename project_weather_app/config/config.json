@@ -3,6 +3,9 @@
         "url": "https://api.open-meteo.com/v1/forecast",
         "payload": {
             "hourly": ["precipitation_probability", "precipitation", "wind_speed_10m"]
-        }
+        },
+        "hourly_units": {
+            "precipitation_unit": "inch",
+            "wind_speed_unit": "mph"}
     }
 }

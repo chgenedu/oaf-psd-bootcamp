@@ -1,5 +1,5 @@
 """
-A Location object to store the location data,
+A Location object is used to store the location data,
 such as the longitude and the latitude of a location.
 """
 class Location():
