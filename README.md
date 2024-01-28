@@ -48,7 +48,7 @@ To run the program by the command line, go to the project_weather_app directory 
 
 ## Example output file
 Here is an example screenshot of the output plot.
-![Weather App Plot Screenshot](https://github.com/chgenedu/oaf-psd-bootcamp/blob/43072e393388cf1dbd6534a848960e616f7ba068/images/plot_example_screenshot.jpg)
+![Weather App Plot Screenshot](https://github.com/chgenedu/oaf-psd-bootcamp/blob/7267c7c9ca4cf0bbfe0a04733066bda738674104/images/plot_example_screenshot.jpg)
 
 ## What I learned
 In this project, I learned some software engineering principles and techniques: 
