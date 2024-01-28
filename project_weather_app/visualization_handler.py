@@ -71,8 +71,8 @@ class VisualizationHandler(IVisualizationHandler):
 
         # setup y-axes labels
         ax[0].set_ylabel("Precipitation Probability(%)")
-        ax0_twin.set_ylabel("Precipitation(mm)")
-        ax[1].set_ylabel("Wind Speed(km/h)")
+        ax0_twin.set_ylabel("Precipitation(in)")
+        ax[1].set_ylabel("Wind Speed(mph)")
 
         # setup misc plot settings and show the plots
         fig.legend(loc="center right")        
